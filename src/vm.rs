@@ -142,6 +142,20 @@ impl VM {
                 }
                 self.next_8_bits();
             }
+            Opcode::JEQ => {
+                let register = self.next_8_bits() as usize;
+                let target = self.registers[register];
+                if self.equal_flag {
+                    self.pc = target as usize
+                }
+            }
+            Opcode::JNEQ => {
+                let register = self.next_8_bits() as usize;
+                let target = self.registers[register];
+                if !self.equal_flag {
+                    self.pc = target as usize
+                }
+            }
             _ => {
                 println!("Unrecognized opcode found! Terminating!");
                 return true;
@@ -351,5 +365,23 @@ mod tests {
         test_vm.registers[1] = 9;
         test_vm.run_once();
         assert_eq!(test_vm.equal_flag, false);
+    }
+    #[test]
+    fn test_opcode_jeq() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 7;
+        test_vm.equal_flag = true;
+        test_vm.program = vec![15, 0, 0, 0, 15, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.pc, 7);
+    }
+    #[test]
+    fn test_opcode_jneq() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 7;
+        test_vm.equal_flag = false;
+        test_vm.program = vec![16, 0, 0, 0, 16, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.pc, 7);
     }
 }
