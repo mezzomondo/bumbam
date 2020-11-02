@@ -8,6 +8,14 @@ pub enum Opcode {
     DIV,
     JMP,
     JMPF,
+    JMPB,
+    EQ,
+    NEQ,
+    GT,
+    LT,
+    GTQ,
+    LTQ,
+    JEQ,
     IGL,
 }
 
@@ -22,6 +30,14 @@ impl From<u8> for Opcode {
             5 => return Opcode::DIV,
             6 => return Opcode::JMP,
             7 => return Opcode::JMPF,
+            8 => return Opcode::JMPB,
+            9 => return Opcode::EQ,
+            10 => return Opcode::NEQ,
+            11 => return Opcode::GT,
+            12 => return Opcode::LT,
+            13 => return Opcode::GTQ,
+            14 => return Opcode::LTQ,
+            15 => return Opcode::JEQ,
             _ => return Opcode::IGL,
         }
     }
