@@ -1,12 +1,11 @@
 use crate::assembler::Token;
 use crate::instruction::Opcode;
-use nom::*;
+use nom::{bytes::complete::tag, IResult};
 
-named!(pub opcode_load<&str, Token>,
-  do_parse!(
-      tag!("load") >> (Token::Op{code: Opcode::LOAD})
-  )
-);
+pub fn opcode_load(input: &str) -> IResult<&str, Token> {
+    let (input, _) = tag("load")(input)?;
+    Ok((input, Token::Op { code: Opcode::LOAD }))
+}
 
 mod tests {
     use super::*;

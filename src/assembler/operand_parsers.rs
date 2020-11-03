@@ -1,16 +1,22 @@
 use crate::assembler::Token;
-use nom::character::complete::digit1;
-use nom::*;
+use std::num::ParseIntError;
 
-named!(integer_operand<&str, Token>,
-    do_parse!(
-        tag!("#") >>
-        reg_num: digit1 >>
-        (
-            Token::IntegerOperand{value: reg_num.parse::<i32>().unwrap()}
-        )
-    )
-);
+use nom::{
+    bytes::complete::tag, character::complete::digit1, combinator::map_res, sequence::preceded,
+    IResult,
+};
+
+fn from_str_operand(reg_num: &str) -> Result<Token, ParseIntError> {
+    Ok(Token::IntegerOperand {
+        value: reg_num.parse::<i32>().unwrap(),
+    })
+}
+
+pub fn integer_operand(input: &str) -> IResult<&str, Token> {
+    map_res(preceded(tag("#"), digit1), |out: &str| {
+        from_str_operand(out)
+    })(input)
+}
 
 mod tests {
     use super::*;
