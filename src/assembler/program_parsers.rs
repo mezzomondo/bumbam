@@ -7,8 +7,8 @@ pub struct Program {
 }
 
 pub fn program(input: &str) -> IResult<&str, Program> {
-    let (_, i) = many1(instruction_one)(input)?;
-    Ok(("", Program { instructions: i }))
+    let (leftover, i) = many1(instruction_one)(input)?;
+    Ok((leftover, Program { instructions: i }))
 }
 
 #[test]

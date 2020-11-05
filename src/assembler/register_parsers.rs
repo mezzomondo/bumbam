@@ -1,25 +1,21 @@
 use crate::assembler::Token;
-use std::num::ParseIntError;
 
 use nom::{
     bytes::complete::tag,
     character::complete::{digit1, multispace0},
-    combinator::map_res,
     sequence::{delimited, preceded},
     IResult,
 };
 
-fn from_str_register(reg_num: &str) -> Result<Token, ParseIntError> {
-    Ok(Token::Register {
-        reg_num: reg_num.parse::<u8>().unwrap(),
-    })
-}
-
 pub fn register(input: &str) -> IResult<&str, Token> {
-    map_res(
-        delimited(multispace0, preceded(tag("$"), digit1), multispace0),
-        |out: &str| from_str_register(out),
-    )(input)
+    let (leftover, register) =
+        delimited(multispace0, preceded(tag("$"), digit1), multispace0)(input)?;
+    Ok((
+        leftover,
+        Token::Register {
+            reg_num: register.parse::<u8>().unwrap(),
+        },
+    ))
 }
 
 mod tests {
