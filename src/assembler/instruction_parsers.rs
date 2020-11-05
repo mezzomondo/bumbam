@@ -3,7 +3,6 @@ use super::operand_parsers::integer_operand;
 use super::register_parsers::register;
 use super::Token;
 use nom::{
-    character::complete::multispace0,
     error::{ErrorKind, ParseError},
     sequence::tuple,
     Err, IResult,
@@ -19,16 +18,9 @@ pub struct AssemblerInstruction {
 }
 
 pub fn instruction_one(input: &str) -> IResult<&str, AssemblerInstruction> {
-    let pattern = tuple((
-        opcode_load,
-        multispace0,
-        register,
-        multispace0,
-        integer_operand,
-        multispace0,
-    ))(input);
+    let pattern = tuple((opcode_load, register, integer_operand))(input);
     match pattern {
-        Ok(("", (o, _, r, _, i, _))) => Ok((
+        Ok(("", (o, r, i))) => Ok((
             "",
             AssemblerInstruction {
                 label: None,
@@ -40,7 +32,7 @@ pub fn instruction_one(input: &str) -> IResult<&str, AssemblerInstruction> {
         )),
         _ => Err(Err::Error(ParseError::from_error_kind(
             input,
-            ErrorKind::MapRes,
+            ErrorKind::MultiSpace,
         ))),
     }
 }

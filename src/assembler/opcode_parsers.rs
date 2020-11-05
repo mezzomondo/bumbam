@@ -1,9 +1,9 @@
 use crate::assembler::Token;
 use crate::instruction::Opcode;
-use nom::{bytes::complete::tag, IResult};
+use nom::{bytes::complete::tag, character::complete::multispace0, sequence::delimited, IResult};
 
 pub fn opcode_load(input: &str) -> IResult<&str, Token> {
-    let (input, _) = tag("load")(input)?;
+    let (input, _) = delimited(multispace0, tag("load"), multispace0)(input)?;
     Ok((input, Token::Op { code: Opcode::LOAD }))
 }
 
