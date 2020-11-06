@@ -19,6 +19,7 @@ pub fn integer_operand(input: &str) -> IResult<&str, Token> {
 }
 
 mod tests {
+    #![allow(unused_imports)]
     use super::*;
     #[test]
     fn test_parse_integer_operand() {

@@ -10,6 +10,7 @@ pub fn opcode_load(input: &str) -> IResult<&str, Token> {
 }
 
 mod tests {
+    #![allow(unused_imports)]
     use super::*;
     #[test]
     fn test_opcode_load() {

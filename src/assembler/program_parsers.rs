@@ -22,6 +22,7 @@ pub fn program(input: &str) -> IResult<&str, Program> {
 }
 
 mod tests {
+    #![allow(unused_imports)]
     use super::*;
     use crate::assembler::Token::*;
     use crate::instruction::Opcode::*;
