@@ -45,6 +45,31 @@ impl From<u8> for Opcode {
     }
 }
 
+impl From<&str> for Opcode {
+    fn from(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "hlt" => return Opcode::HLT,
+            "load" => return Opcode::LOAD,
+            "add" => return Opcode::ADD,
+            "sub" => return Opcode::SUB,
+            "mul" => return Opcode::MUL,
+            "div" => return Opcode::DIV,
+            "jmp" => return Opcode::JMP,
+            "jmpf" => return Opcode::JMPF,
+            "jmpb" => return Opcode::JMPB,
+            "eq" => return Opcode::EQ,
+            "neq" => return Opcode::NEQ,
+            "gt" => return Opcode::GT,
+            "lt" => return Opcode::LT,
+            "gtq" => return Opcode::GTQ,
+            "ltq" => return Opcode::LTQ,
+            "jeq" => return Opcode::JEQ,
+            "jneq" => return Opcode::JNEQ,
+            _ => return Opcode::IGL,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Instruction {
     opcode: Opcode,

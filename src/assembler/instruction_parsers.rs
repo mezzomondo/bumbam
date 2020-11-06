@@ -56,7 +56,7 @@ impl AssemblerInstruction {
 }
 
 pub fn instruction_one(input: &str) -> IResult<&str, AssemblerInstruction> {
-    let (leftover, (o, r, i)) = tuple((opcode_load, register, integer_operand))(input)?;
+    let (leftover, (o, r, i)) = tuple((opcode, register, integer_operand))(input)?;
     Ok((
         leftover,
         AssemblerInstruction {

@@ -1,12 +1,19 @@
 use crate::assembler::Token;
 use crate::instruction::Opcode;
 use nom::{
-    bytes::complete::tag_no_case, character::complete::multispace0, sequence::delimited, IResult,
+    character::complete::{alpha1, multispace0},
+    sequence::delimited,
+    IResult,
 };
 
-pub fn opcode_load(input: &str) -> IResult<&str, Token> {
-    let (input, _) = delimited(multispace0, tag_no_case("load"), multispace0)(input)?;
-    Ok((input, Token::Op { code: Opcode::LOAD }))
+pub fn opcode(input: &str) -> IResult<&str, Token> {
+    let (leftover, input) = delimited(multispace0, alpha1, multispace0)(input)?;
+    Ok((
+        leftover,
+        Token::Op {
+            code: Opcode::from(input),
+        },
+    ))
 }
 
 mod tests {
@@ -15,14 +22,17 @@ mod tests {
     #[test]
     fn test_opcode_load() {
         // First tests that the opcode is detected and parsed correctly
-        let result = opcode_load("load");
+        let result = opcode("load");
         assert_eq!(result.is_ok(), true);
-        let (rest, token) = result.unwrap();
+        let (leftover, token) = result.unwrap();
         assert_eq!(token, Token::Op { code: Opcode::LOAD });
-        assert_eq!(rest, "");
+        assert_eq!(leftover, "");
 
         // Tests that an invalid opcode isn't recognized
-        let result = opcode_load("aold");
-        assert_eq!(result.is_ok(), false);
+        let result = opcode("aold");
+        assert_eq!(result.is_ok(), true);
+        let (leftover, token) = result.unwrap();
+        assert_eq!(token, Token::Op { code: Opcode::IGL });
+        assert_eq!(leftover, "");
     }
 }
