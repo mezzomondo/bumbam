@@ -62,12 +62,12 @@ impl AssemblerInstruction {
 
 // _zero etc. is the arity of the instuction parsed
 fn instruction_zero(input: &str) -> IResult<&str, AssemblerInstruction> {
-    let (leftover, input) = terminated(opcode, multispace0)(input)?;
+    let (leftover, o) = terminated(opcode, multispace0)(input)?;
     Ok((
         leftover,
         AssemblerInstruction {
             label: None,
-            opcode: input,
+            opcode: o,
             operand1: None,
             operand2: None,
             operand3: None,
@@ -89,8 +89,22 @@ fn instruction_two(input: &str) -> IResult<&str, AssemblerInstruction> {
     ))
 }
 
+fn instruction_three(input: &str) -> IResult<&str, AssemblerInstruction> {
+    let (leftover, (o, r1, r2, r3)) = tuple((opcode, register, register, register))(input)?;
+    Ok((
+        leftover,
+        AssemblerInstruction {
+            label: None,
+            opcode: o,
+            operand1: Some(r1),
+            operand2: Some(r2),
+            operand3: Some(r3),
+        },
+    ))
+}
+
 pub fn instruction(input: &str) -> IResult<&str, AssemblerInstruction> {
-    alt((instruction_two, instruction_zero))(input)
+    alt((instruction_three, instruction_two, instruction_zero))(input)
 }
 
 #[cfg(test)]
@@ -122,5 +136,17 @@ mod tests {
         assert_eq!(Some(Token::Register { reg_num: 0 }), p.operand1);
         assert_eq!(Some(Token::IntegerOperand { value: 100 }), p.operand2);
         assert_eq!(None, p.operand3);
+    }
+    #[test]
+    fn test_parse_instruction_three() {
+        let result = instruction_three("add $0 $1 $2\n");
+        assert_eq!(result.is_ok(), true);
+        let (leftover, p) = result.unwrap();
+        assert_eq!(leftover, "");
+        assert_eq!(None, p.label);
+        assert_eq!(Token::Op { code: Opcode::ADD }, p.opcode);
+        assert_eq!(Some(Token::Register { reg_num: 0 }), p.operand1);
+        assert_eq!(Some(Token::Register { reg_num: 1 }), p.operand2);
+        assert_eq!(Some(Token::Register { reg_num: 2 }), p.operand3);
     }
 }

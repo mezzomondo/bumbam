@@ -55,11 +55,11 @@ mod tests {
     }
     #[test]
     fn test_program_to_bytes() {
-        let result = program("load $0 #100\nload $1 #200");
+        let result = program("load $0 #100\nload $1 #200\nadd $0 $1 $2\nhlt");
         assert_eq!(result.is_ok(), true);
         let (_, program) = result.unwrap();
         let bytecode = program.to_bytes();
-        assert_eq!(bytecode.len(), 8);
-        assert_eq!(bytecode, [1, 0, 0, 100, 1, 1, 0, 200]);
+        assert_eq!(bytecode.len(), 13);
+        assert_eq!(bytecode, [1, 0, 0, 100, 1, 1, 0, 200, 2, 0, 1, 2, 0]);
     }
 }
