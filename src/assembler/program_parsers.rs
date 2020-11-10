@@ -1,4 +1,4 @@
-use super::instruction_parsers::{instruction_one, AssemblerInstruction};
+use super::instruction_parsers::{instruction, AssemblerInstruction};
 use nom::{multi::many1, IResult};
 
 #[derive(Debug, PartialEq)]
@@ -17,7 +17,7 @@ impl Program {
 }
 
 pub fn program(input: &str) -> IResult<&str, Program> {
-    let (leftover, i) = many1(instruction_one)(input)?;
+    let (leftover, i) = many1(instruction)(input)?;
     Ok((leftover, Program { instructions: i }))
 }
 

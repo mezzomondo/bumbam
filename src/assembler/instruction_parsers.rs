@@ -2,7 +2,12 @@ use super::opcode_parsers::*;
 use super::operand_parsers::integer_operand;
 use super::register_parsers::register;
 use super::Token;
-use nom::{sequence::tuple, IResult};
+use nom::{
+    branch::alt,
+    character::complete::multispace0,
+    sequence::{terminated, tuple},
+    IResult,
+};
 
 #[derive(Debug, PartialEq)]
 pub struct AssemblerInstruction {
@@ -55,7 +60,22 @@ impl AssemblerInstruction {
     }
 }
 
-pub fn instruction_one(input: &str) -> IResult<&str, AssemblerInstruction> {
+// _zero etc. is the arity of the instuction parsed
+fn instruction_zero(input: &str) -> IResult<&str, AssemblerInstruction> {
+    let (leftover, input) = terminated(opcode, multispace0)(input)?;
+    Ok((
+        leftover,
+        AssemblerInstruction {
+            label: None,
+            opcode: input,
+            operand1: None,
+            operand2: None,
+            operand3: None,
+        },
+    ))
+}
+
+fn instruction_two(input: &str) -> IResult<&str, AssemblerInstruction> {
     let (leftover, (o, r, i)) = tuple((opcode, register, integer_operand))(input)?;
     Ok((
         leftover,
@@ -69,6 +89,10 @@ pub fn instruction_one(input: &str) -> IResult<&str, AssemblerInstruction> {
     ))
 }
 
+pub fn instruction(input: &str) -> IResult<&str, AssemblerInstruction> {
+    alt((instruction_two, instruction_zero))(input)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -76,8 +100,20 @@ mod tests {
     use crate::instruction::Opcode;
 
     #[test]
-    fn test_parse_instruction_form_one() {
-        let result = instruction_one("load $0 #100\n");
+    fn test_parse_instruction_zero() {
+        let result = instruction_zero("HLT\n");
+        assert_eq!(result.is_ok(), true);
+        let (leftover, p) = result.unwrap();
+        assert_eq!(leftover, "");
+        assert_eq!(None, p.label);
+        assert_eq!(Token::Op { code: Opcode::HLT }, p.opcode);
+        assert_eq!(None, p.operand1);
+        assert_eq!(None, p.operand2);
+        assert_eq!(None, p.operand3);
+    }
+    #[test]
+    fn test_parse_instruction_two() {
+        let result = instruction_two("load $0 #100\n");
         assert_eq!(result.is_ok(), true);
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
