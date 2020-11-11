@@ -38,7 +38,7 @@ impl VM {
         // If our program counter has exceeded the length of the program itself, something has
         // gone awry
         if self.pc >= self.program.len() {
-            true;
+            return true;
         }
         match self.decode_opcode() {
             Opcode::HLT => {
