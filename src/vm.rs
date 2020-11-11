@@ -8,6 +8,8 @@ pub struct VM {
     pc: usize,
     /// The bytecode of the program being run
     pub program: Vec<u8>,
+    /// Guess what
+    heap: Vec<u8>,
     /// Contains the remainder of modulo division ops
     remainder: usize,
     /// Contains the result of the last comparison operation
@@ -19,6 +21,7 @@ impl VM {
         VM {
             registers: [0; 32],
             program: vec![],
+            heap: vec![],
             pc: 0,
             remainder: 0,
             equal_flag: false,
@@ -153,6 +156,12 @@ impl VM {
                 if !self.equal_flag {
                     self.pc = target as usize
                 }
+            }
+            Opcode::ALOC => {
+                let register = self.next_8_bits() as usize;
+                let size = self.registers[register] as usize;
+                self.heap = vec![0; size];
+                self.next_16_bits();
             }
             _ => {
                 println!("Unrecognized opcode found! Terminating!");
@@ -385,5 +394,13 @@ mod tests {
         test_vm.program = vec![16, 0, 0, 0, 16, 0, 0, 0];
         test_vm.run_once();
         assert_eq!(test_vm.pc, 7);
+    }
+    #[test]
+    fn test_opcode_aloc() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 1024;
+        test_vm.program = vec![17, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.heap.len(), 1024);
     }
 }

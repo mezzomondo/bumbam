@@ -75,6 +75,20 @@ fn instruction_zero(input: &str) -> IResult<&str, AssemblerInstruction> {
     ))
 }
 
+fn instruction_one(input: &str) -> IResult<&str, AssemblerInstruction> {
+    let (leftover, (o, r)) = tuple((opcode, register))(input)?;
+    Ok((
+        leftover,
+        AssemblerInstruction {
+            label: None,
+            opcode: o,
+            operand1: Some(r),
+            operand2: None,
+            operand3: None,
+        },
+    ))
+}
+
 fn instruction_two(input: &str) -> IResult<&str, AssemblerInstruction> {
     let (leftover, (o, r, i)) = tuple((opcode, register, integer_operand))(input)?;
     Ok((
@@ -104,7 +118,12 @@ fn instruction_three(input: &str) -> IResult<&str, AssemblerInstruction> {
 }
 
 pub fn instruction(input: &str) -> IResult<&str, AssemblerInstruction> {
-    alt((instruction_three, instruction_two, instruction_zero))(input)
+    alt((
+        instruction_three,
+        instruction_two,
+        instruction_one,
+        instruction_zero,
+    ))(input)
 }
 
 #[cfg(test)]
@@ -116,6 +135,8 @@ mod tests {
     #[test]
     fn test_parse_instruction_zero() {
         let result = instruction_zero("HLT\n");
+        let result1 = instruction("HLT\n");
+        assert_eq!(result, result1);
         assert_eq!(result.is_ok(), true);
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
@@ -126,8 +147,24 @@ mod tests {
         assert_eq!(None, p.operand3);
     }
     #[test]
+    fn test_parse_instruction_one() {
+        let result = instruction_one("ALOC $0\n");
+        let result1 = instruction("ALOC $0\n");
+        assert_eq!(result, result1);
+        assert_eq!(result.is_ok(), true);
+        let (leftover, p) = result.unwrap();
+        assert_eq!(leftover, "");
+        assert_eq!(None, p.label);
+        assert_eq!(Token::Op { code: Opcode::ALOC }, p.opcode);
+        assert_eq!(Some(Token::Register { reg_num: 0 }), p.operand1);
+        assert_eq!(None, p.operand2);
+        assert_eq!(None, p.operand3);
+    }
+    #[test]
     fn test_parse_instruction_two() {
         let result = instruction_two("load $0 #100\n");
+        let result1 = instruction("load $0 #100\n");
+        assert_eq!(result, result1);
         assert_eq!(result.is_ok(), true);
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
@@ -140,6 +177,8 @@ mod tests {
     #[test]
     fn test_parse_instruction_three() {
         let result = instruction_three("add $0 $1 $2\n");
+        let result1 = instruction("add $0 $1 $2\n");
+        assert_eq!(result, result1);
         assert_eq!(result.is_ok(), true);
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");

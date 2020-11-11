@@ -17,6 +17,7 @@ pub enum Opcode {
     LTQ,
     JEQ,
     JNEQ,
+    ALOC,
     IGL,
 }
 
@@ -40,6 +41,7 @@ impl From<u8> for Opcode {
             14 => return Opcode::LTQ,
             15 => return Opcode::JEQ,
             16 => return Opcode::JNEQ,
+            17 => return Opcode::ALOC,
             _ => return Opcode::IGL,
         }
     }
@@ -65,6 +67,7 @@ impl From<&str> for Opcode {
             "ltq" => return Opcode::LTQ,
             "jeq" => return Opcode::JEQ,
             "jneq" => return Opcode::JNEQ,
+            "aloc" => return Opcode::ALOC,
             _ => return Opcode::IGL,
         }
     }
@@ -100,7 +103,6 @@ mod tests {
         let instruction = Instruction::new(Opcode::HLT);
         assert_eq!(instruction.opcode, Opcode::HLT);
     }
-
     #[test]
     fn test_str_to_opcode() {
         let opcode = Opcode::from("load");
