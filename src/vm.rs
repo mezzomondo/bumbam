@@ -163,6 +163,16 @@ impl VM {
                 self.heap = vec![0; size];
                 self.next_16_bits();
             }
+            Opcode::INC => {
+                let register = self.next_8_bits() as usize;
+                self.registers[register] += 1;
+                self.next_16_bits();
+            }
+            Opcode::DEC => {
+                let register = self.next_8_bits() as usize;
+                self.registers[register] -= 1;
+                self.next_16_bits();
+            }
             _ => {
                 println!("Unrecognized opcode found! Terminating!");
                 return true;
@@ -402,5 +412,21 @@ mod tests {
         test_vm.program = vec![17, 0, 0, 0];
         test_vm.run_once();
         assert_eq!(test_vm.heap.len(), 1024);
+    }
+    #[test]
+    fn test_opcode_inc() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 0;
+        test_vm.program = vec![18, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.registers[0], 1);
+    }
+    #[test]
+    fn test_opcode_dec() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 1;
+        test_vm.program = vec![19, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.registers[0], 0);
     }
 }
