@@ -37,15 +37,17 @@ mod tests {
             p.instructions,
             [
                 AssemblerInstruction {
+                    opcode: Some(Op { code: LOAD }),
                     label: None,
-                    opcode: Op { code: LOAD },
+                    directive: None,
                     operand1: Some(Register { reg_num: 0 }),
                     operand2: Some(IntegerOperand { value: 100 }),
                     operand3: None
                 },
                 AssemblerInstruction {
+                    opcode: Some(Op { code: LOAD }),
                     label: None,
-                    opcode: Op { code: LOAD },
+                    directive: None,
                     operand1: Some(Register { reg_num: 1 }),
                     operand2: Some(IntegerOperand { value: 200 }),
                     operand3: None

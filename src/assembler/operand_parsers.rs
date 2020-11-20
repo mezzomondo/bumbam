@@ -1,6 +1,8 @@
+use crate::assembler::register_parsers::register;
 use crate::assembler::Token;
 
 use nom::{
+    branch::alt,
     bytes::complete::tag,
     character::complete::{digit1, multispace0},
     sequence::{delimited, preceded},
@@ -16,6 +18,10 @@ pub fn integer_operand(input: &str) -> IResult<&str, Token> {
             value: operand.parse::<i32>().unwrap(),
         },
     ))
+}
+
+pub fn operand(input: &str) -> IResult<&str, Token> {
+    alt((integer_operand, register))(input)
 }
 
 mod tests {

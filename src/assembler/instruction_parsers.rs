@@ -11,8 +11,9 @@ use nom::{
 
 #[derive(Debug, PartialEq)]
 pub struct AssemblerInstruction {
-    pub label: Option<String>,
-    pub opcode: Token,
+    pub label: Option<Token>,
+    pub directive: Option<Token>,
+    pub opcode: Option<Token>,
     pub operand1: Option<Token>,
     pub operand2: Option<Token>,
     pub operand3: Option<Token>,
@@ -22,7 +23,7 @@ impl AssemblerInstruction {
     pub fn to_bytes(self) -> Vec<u8> {
         let mut results = vec![];
         match self.opcode {
-            Token::Op { code } => match code {
+            Some(Token::Op { code }) => match code {
                 _ => results.push(code as u8),
             },
             _ => {
@@ -71,7 +72,8 @@ fn instruction_zero(input: &str) -> IResult<&str, AssemblerInstruction> {
         leftover,
         AssemblerInstruction {
             label: None,
-            opcode: o,
+            directive: None,
+            opcode: Some(o),
             operand1: None,
             operand2: None,
             operand3: None,
@@ -85,7 +87,8 @@ fn instruction_one(input: &str) -> IResult<&str, AssemblerInstruction> {
         leftover,
         AssemblerInstruction {
             label: None,
-            opcode: o,
+            directive: None,
+            opcode: Some(o),
             operand1: Some(r),
             operand2: None,
             operand3: None,
@@ -99,7 +102,8 @@ fn instruction_two(input: &str) -> IResult<&str, AssemblerInstruction> {
         leftover,
         AssemblerInstruction {
             label: None,
-            opcode: o,
+            directive: None,
+            opcode: Some(o),
             operand1: Some(r),
             operand2: Some(i),
             operand3: None,
@@ -113,7 +117,8 @@ fn instruction_three(input: &str) -> IResult<&str, AssemblerInstruction> {
         leftover,
         AssemblerInstruction {
             label: None,
-            opcode: o,
+            directive: None,
+            opcode: Some(o),
             operand1: Some(r1),
             operand2: Some(r2),
             operand3: Some(r3),
@@ -145,7 +150,8 @@ mod tests {
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
         assert_eq!(None, p.label);
-        assert_eq!(Token::Op { code: Opcode::HLT }, p.opcode);
+        assert_eq!(None, p.directive);
+        assert_eq!(Some(Token::Op { code: Opcode::HLT }), p.opcode);
         assert_eq!(None, p.operand1);
         assert_eq!(None, p.operand2);
         assert_eq!(None, p.operand3);
@@ -159,7 +165,8 @@ mod tests {
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
         assert_eq!(None, p.label);
-        assert_eq!(Token::Op { code: Opcode::ALOC }, p.opcode);
+        assert_eq!(None, p.directive);
+        assert_eq!(Some(Token::Op { code: Opcode::ALOC }), p.opcode);
         assert_eq!(Some(Token::Register { reg_num: 0 }), p.operand1);
         assert_eq!(None, p.operand2);
         assert_eq!(None, p.operand3);
@@ -173,7 +180,8 @@ mod tests {
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
         assert_eq!(None, p.label);
-        assert_eq!(Token::Op { code: Opcode::LOAD }, p.opcode);
+        assert_eq!(None, p.directive);
+        assert_eq!(Some(Token::Op { code: Opcode::LOAD }), p.opcode);
         assert_eq!(Some(Token::Register { reg_num: 0 }), p.operand1);
         assert_eq!(Some(Token::IntegerOperand { value: 100 }), p.operand2);
         assert_eq!(None, p.operand3);
@@ -187,7 +195,8 @@ mod tests {
         let (leftover, p) = result.unwrap();
         assert_eq!(leftover, "");
         assert_eq!(None, p.label);
-        assert_eq!(Token::Op { code: Opcode::ADD }, p.opcode);
+        assert_eq!(None, p.directive);
+        assert_eq!(Some(Token::Op { code: Opcode::ADD }), p.opcode);
         assert_eq!(Some(Token::Register { reg_num: 0 }), p.operand1);
         assert_eq!(Some(Token::Register { reg_num: 1 }), p.operand2);
         assert_eq!(Some(Token::Register { reg_num: 2 }), p.operand3);
