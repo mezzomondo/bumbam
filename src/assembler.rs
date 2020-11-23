@@ -1,5 +1,6 @@
 use crate::instruction::Opcode;
 
+pub mod directive_parsers;
 pub mod instruction_parsers;
 pub mod label_parsers;
 pub mod opcode_parsers;
@@ -15,4 +16,5 @@ pub enum Token {
     LabelDeclaration { name: String },
     LabelUsage { name: String },
     Directive { name: String },
+    IrString { name: String },
 }

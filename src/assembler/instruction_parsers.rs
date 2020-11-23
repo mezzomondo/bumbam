@@ -60,7 +60,7 @@ impl AssemblerInstruction {
     }
 }
 
-pub fn instruction_combined(input: &str) -> IResult<&str, AssemblerInstruction> {
+fn instruction_combined(input: &str) -> IResult<&str, AssemblerInstruction> {
     let (leftover, (l, op, o1, o2, o3)) = tuple((
         opt(label_declaration),
         opcode,
@@ -79,6 +79,10 @@ pub fn instruction_combined(input: &str) -> IResult<&str, AssemblerInstruction> 
             operand3: o3,
         },
     ))
+}
+
+pub fn instruction(input: &str) -> IResult<&str, AssemblerInstruction> {
+    instruction_combined(input)
 }
 
 #[cfg(test)]
