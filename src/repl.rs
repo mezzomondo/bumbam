@@ -2,8 +2,11 @@ use crate::assembler::program_parsers::program;
 use crate::vm::VM;
 use core::num::ParseIntError;
 use std;
+use std::fs::File;
 use std::io;
+use std::io::Read;
 use std::io::Write;
+use std::path::Path;
 
 /// Core structure for the REPL for the Assembler
 pub struct REPL {
@@ -62,6 +65,34 @@ impl REPL {
                     println!("Listing registers and all contents:");
                     println!("{:#?}", self.vm);
                     println!("End of Register Listing")
+                }
+                "load_file" => {
+                    print!("Please enter the path to the file you wish to load: ");
+                    io::stdout().flush().expect("Unable to flush stdout");
+                    let mut tmp = String::new();
+                    stdin
+                        .read_line(&mut tmp)
+                        .expect("Unable to read line from user");
+                    let tmp = tmp.trim();
+                    let filename = Path::new(&tmp);
+                    let mut f = File::open(Path::new(&filename)).expect("File not found");
+                    let mut contents = String::new();
+                    f.read_to_string(&mut contents)
+                        .expect("There was an error reading from the file");
+                    let program = match program(&contents) {
+                        // Rusts pattern matching is pretty powerful an can even be nested
+                        Ok((_, program)) => program,
+                        Err(e) => {
+                            println!("Unable to parse input: {:?}", e);
+                            continue;
+                        }
+                    };
+                    self.vm.program.append(&mut program.to_bytes());
+                }
+                "clear_program" => {
+                    println!("Clearing the program vector...");
+                    self.vm.program.clear();
+                    println!("Done.");
                 }
                 _ => {
                     // You can assign the result of a match to a variable
