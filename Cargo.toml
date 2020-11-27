@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 nom = "6"
 byteorder = "1"
+clap = { version = "2.33", features = ["yaml"] }

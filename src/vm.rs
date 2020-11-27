@@ -1,4 +1,7 @@
+use crate::assembler::ELF_HEADER_PREFIX;
 use crate::instruction::Opcode;
+use byteorder::{LittleEndian, ReadBytesExt};
+use std::io::Cursor;
 
 #[derive(Debug)]
 pub struct VM {
@@ -29,11 +32,29 @@ impl VM {
     }
     /// Loops as long as instructions can be executed.
     pub fn run(&mut self) {
-        let mut is_done = false;
-        while !is_done {
-            is_done = self.execute_instruction();
+        if self.verify_header() {
+            self.pc = 64 + self.get_starting_offset();
+            let mut is_done = false;
+            while !is_done {
+                is_done = self.execute_instruction();
+            }
+        } else {
+            println!("Header incorrect, exiting...");
         }
     }
+    /// Processes the header of bytecode the VM wants to execute
+    fn verify_header(&self) -> bool {
+        if self.program[0..19] != ELF_HEADER_PREFIX {
+            return false;
+        }
+        true
+    }
+    fn get_starting_offset(&self) -> usize {
+        1
+        // let mut rdr = Cursor::new(&self.program[65..69]);
+        // rdr.read_u32::<LittleEndian>().unwrap() as usize
+    }
+
     fn execute_instruction(&mut self) -> bool {
         // If our program counter has exceeded the length of the program itself, something has
         // gone awry
@@ -215,6 +236,19 @@ impl VM {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::assembler::{ELF_HEADER_LENGTH, ELF_HEADER_PREFIX};
+
+    fn prepend_header(mut b: Vec<u8>) -> Vec<u8> {
+        let mut prep = vec![];
+        for byte in ELF_HEADER_PREFIX.iter() {
+            prep.push(byte.clone());
+        }
+        while prep.len() <= ELF_HEADER_LENGTH {
+            prep.push(0);
+        }
+        prep.append(&mut b);
+        prep
+    }
 
     #[test]
     fn test_create_vm() {
@@ -245,6 +279,16 @@ mod tests {
         let mut test_vm = VM::new();
         test_vm.program = vec![1, 0, 1, 244]; // Remember, this is how we represent 500 using two u8s in little endian format
         test_vm.run_once();
+        assert_eq!(test_vm.registers[0], 500);
+    }
+
+    #[test]
+    fn test_opcode_load_run() {
+        let mut test_vm = VM::new();
+        test_vm.program = vec![1, 0, 1, 244]; // Remember, this is how we represent 500 using two u8s in little endian format
+        test_vm.program = prepend_header(test_vm.program);
+        test_vm.run();
+        println!("{:?}", test_vm);
         assert_eq!(test_vm.registers[0], 500);
     }
     #[test]

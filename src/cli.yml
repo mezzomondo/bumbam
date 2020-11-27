@@ -1,0 +1,9 @@
+name: bumbam
+version: "0.0.1"
+author: Miki Fossati <miki@improntenelweb.it> following Fletcher Haynes <fletcher@subnetzero.io>
+about: Interpreter for the BumBam language
+args:
+    - INPUT_FILE:
+        help: Path to the .iasm or .ir file to run
+        required: false
+        index: 1

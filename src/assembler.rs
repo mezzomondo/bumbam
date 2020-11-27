@@ -9,6 +9,30 @@ pub mod operand_parsers;
 pub mod program_parsers;
 pub mod register_parsers;
 
+//
+// The first 4 hexadecimal parts define that this is an ELF file (45=E,4c=L,46=F), prefixed with the 7f value.
+// After the ELF type declaration, there is a Class field defined.
+//
+// Then a value that determines the architecture for the file. It can be a 32-bit (=01) or 64-bit (=02) architecture.
+// This is a 01, 32-bit
+//
+// Next part is the data field. 01 is for LSB (Least Significant Bit), also known as little-endian.
+//
+// Next in line is another 01 which is the version number (currently, there is only version “01”).
+//
+// Byte 16 is the Type, in our case 02:
+// - CORE (value 4)
+// - DYN (Shared object file), for libraries (value 3)
+// - EXEC (Executable file), for binaries (value 2)
+// - REL (Relocatable file), before linked into an executable file (value 1)
+//
+// Byte 18 is the Machine Type, I'm using 12 (0C) that is not in use ATM
+//
+pub const ELF_HEADER_PREFIX: [u8; 19] = [
+    127, 69, 76, 70, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 12,
+];
+pub const ELF_HEADER_LENGTH: usize = 64;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Op { code: Opcode },
@@ -43,8 +67,14 @@ impl Assembler {
     pub fn assemble(&mut self, raw: &str) -> Option<Vec<u8>> {
         match program(raw) {
             Ok((_, program)) => {
+                // First get the header so we can smush it into the bytecode letter
+                let mut assembled_program = self.write_elf_header();
                 self.process_first_phase(&program);
-                Some(self.process_second_phase(&program))
+                let mut body = self.process_second_phase(&program);
+
+                // Merge the header with the populated body vector
+                assembled_program.append(&mut body);
+                Some(assembled_program)
             }
             Err(e) => {
                 println!("There was an error assembling the code: {:?}", e);
@@ -81,6 +111,17 @@ impl Assembler {
             }
             c += 4;
         }
+    }
+
+    fn write_elf_header(&self) -> Vec<u8> {
+        let mut header = vec![];
+        for byte in ELF_HEADER_PREFIX.iter() {
+            header.push(byte.clone());
+        }
+        while header.len() <= ELF_HEADER_LENGTH {
+            header.push(0 as u8);
+        }
+        header
     }
 }
 
@@ -155,8 +196,8 @@ mod tests {
             "load $0 #100\nload $1 #1\nload $2 #0\ntest: inc $0\nneq $0 $2\njmpe @test\nhlt";
         let program = asm.assemble(test_string).unwrap();
         let mut vm = VM::new();
-        assert_eq!(program.len(), 24);
+        assert_eq!(program.len(), 89);
         vm.add_bytes(program);
-        assert_eq!(vm.program.len(), 24);
+        assert_eq!(vm.program.len(), 89);
     }
 }
