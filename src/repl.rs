@@ -1,4 +1,5 @@
 use crate::assembler::program_parsers::program;
+use crate::assembler::Assembler;
 use crate::vm::VM;
 use core::num::ParseIntError;
 use std;
@@ -13,6 +14,7 @@ pub struct REPL {
     command_buffer: Vec<String>,
     // The VM the REPL will use to execute code
     vm: VM,
+    asm: Assembler,
 }
 
 impl REPL {
@@ -20,6 +22,7 @@ impl REPL {
     pub fn new() -> REPL {
         REPL {
             vm: VM::new(),
+            asm: Assembler::new(),
             command_buffer: vec![],
         }
     }
@@ -87,7 +90,9 @@ impl REPL {
                             continue;
                         }
                     };
-                    self.vm.program.append(&mut program.to_bytes());
+                    self.vm
+                        .program
+                        .append(&mut program.to_bytes(&self.asm.symbols));
                 }
                 "clear_program" => {
                     println!("Clearing the program vector...");
@@ -106,7 +111,9 @@ impl REPL {
                         }
                     };
                     // The `program` is `pub` anyways so you can just `append` to the `Vec`
-                    self.vm.program.append(&mut program.to_bytes());
+                    self.vm
+                        .program
+                        .append(&mut program.to_bytes(&self.asm.symbols));
                     self.vm.run_once();
                 }
             }

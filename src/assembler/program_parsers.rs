@@ -1,16 +1,17 @@
 use super::instruction_parsers::{instruction, AssemblerInstruction};
+use crate::assembler::SymbolTable;
 use nom::{multi::many1, IResult};
 
 #[derive(Debug, PartialEq)]
 pub struct Program {
-    instructions: Vec<AssemblerInstruction>,
+    pub instructions: Vec<AssemblerInstruction>,
 }
 
 impl Program {
-    pub fn to_bytes(self) -> Vec<u8> {
+    pub fn to_bytes(&self, symbols: &SymbolTable) -> Vec<u8> {
         let mut program = vec![];
-        for instruction in self.instructions {
-            program.append(&mut instruction.to_bytes());
+        for instruction in &self.instructions {
+            program.append(&mut instruction.to_bytes(symbols));
         }
         program
     }
@@ -60,7 +61,8 @@ mod tests {
         let result = program("load $0 #100\nload $1 #200\nadd $0 $1 $2\nhlt");
         assert_eq!(result.is_ok(), true);
         let (_, program) = result.unwrap();
-        let bytecode = program.to_bytes();
+        let symbols = SymbolTable::new();
+        let bytecode = program.to_bytes(&symbols);
         assert_eq!(bytecode.len(), 16);
         assert_eq!(
             bytecode,

@@ -1,7 +1,8 @@
 use super::label_parsers::label_declaration;
 use super::opcode_parsers::*;
 use super::operand_parsers::operand;
-use super::Token;
+use super::{SymbolTable, Token};
+use byteorder::{ByteOrder, LittleEndian};
 use nom::{combinator::opt, sequence::tuple, IResult};
 
 #[derive(Debug, PartialEq)]
@@ -15,21 +16,26 @@ pub struct AssemblerInstruction {
 }
 
 impl AssemblerInstruction {
-    pub fn to_bytes(self) -> Vec<u8> {
+    pub fn to_bytes(&self, symbols: &SymbolTable) -> Vec<u8> {
         let mut results = vec![];
-        match self.opcode {
-            Some(Token::Op { code }) => match code {
-                _ => results.push(code as u8),
-            },
-            _ => {
-                println!("Non-opcode found in opcode field");
-                std::process::exit(1);
+        if let Some(ref token) = self.opcode {
+            match token {
+                Token::Op { code } => match code {
+                    _ => {
+                        let b: u8 = (*code).into();
+                        results.push(b);
+                    }
+                },
+                _ => {
+                    println!("Non-opcode found in opcode field");
+                    std::process::exit(1);
+                }
             }
         }
 
         for operand in &[&self.operand1, &self.operand2, &self.operand3] {
             if let Some(token) = operand {
-                AssemblerInstruction::extract_operand(token, &mut results)
+                AssemblerInstruction::extract_operand(token, &mut results, symbols)
             }
         }
 
@@ -40,7 +46,7 @@ impl AssemblerInstruction {
         return results;
     }
 
-    fn extract_operand(t: &Token, results: &mut Vec<u8>) {
+    fn extract_operand(t: &Token, results: &mut Vec<u8>, symbols: &SymbolTable) {
         match t {
             Token::Register { reg_num } => {
                 results.push(*reg_num);
@@ -52,11 +58,35 @@ impl AssemblerInstruction {
                 results.push(byte2 as u8);
                 results.push(byte1 as u8);
             }
+            Token::LabelUsage { name } => {
+                if let Some(value) = symbols.symbol_value(name) {
+                    let mut wtr = vec![];
+                    LittleEndian::write_u32(&mut wtr, value);
+                    results.push(wtr[1]);
+                    results.push(wtr[0]);
+                } else {
+                    println!("No value found for {:?}", name);
+                }
+            }
+
             _ => {
                 println!("Opcode found in operand field");
                 std::process::exit(1);
             }
         };
+    }
+    pub fn is_label(&self) -> bool {
+        self.label.is_some()
+    }
+
+    pub fn get_label_name(&self) -> Option<String> {
+        match &self.label {
+            Some(l) => match l {
+                Token::LabelDeclaration { name } => Some(name.clone()),
+                _ => None,
+            },
+            None => None,
+        }
     }
 }
 
