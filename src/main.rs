@@ -27,9 +27,7 @@ fn read_file(tmp: &str) -> String {
         Ok(mut fh) => {
             let mut contents = String::new();
             match fh.read_to_string(&mut contents) {
-                Ok(_) => {
-                    return contents;
-                }
+                Ok(_) => contents,
                 Err(e) => {
                     println!("There was an error reading file: {:?}", e);
                     std::process::exit(1);
@@ -53,13 +51,10 @@ fn main() {
             let mut asm = assembler::Assembler::new();
             let mut vm = vm::VM::new();
             let program = asm.assemble(&program);
-            match program {
-                Some(p) => {
-                    vm.add_bytes(p);
-                    vm.run();
-                    std::process::exit(0);
-                }
-                None => {}
+            if let Some(p) = program {
+                vm.add_bytes(p);
+                vm.run();
+                std::process::exit(0);
             }
         }
         None => {

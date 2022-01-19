@@ -102,7 +102,7 @@ impl REPL {
                 _ => {
                     // You can assign the result of a match to a variable
                     // Rust can convert types using `Into` and `From`
-                    let program = match program(buffer.into()) {
+                    let program = match program(buffer) {
                         // Rusts pattern matching is pretty powerful an can even be nested
                         Ok((_, program)) => program,
                         Err(_) => {
@@ -125,10 +125,10 @@ impl REPL {
     /// Accepts a hexadecimal string WITHOUT a leading `0x` and returns a Vec of u8
     /// Example for a LOAD command: 00 01 03 E8
     fn parse_hex(&mut self, i: &str) -> Result<Vec<u8>, ParseIntError> {
-        let split = i.split(" ").collect::<Vec<&str>>();
+        let split = i.split(' ').collect::<Vec<&str>>();
         let mut results: Vec<u8> = vec![];
         for hex_string in split {
-            let byte = u8::from_str_radix(&hex_string, 16);
+            let byte = u8::from_str_radix(hex_string, 16);
             match byte {
                 Ok(result) => {
                     results.push(result);
